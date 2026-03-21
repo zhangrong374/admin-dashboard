@@ -1,13 +1,15 @@
 {
-  "build": {
-    "command": "npm run build",
-    "output": "dist"
-  },
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs18.x"
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build"
+    },
+    {
+      "src": "api/server.js",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
