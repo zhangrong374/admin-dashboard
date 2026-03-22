@@ -89,12 +89,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
 const rolesData = ref<any[]>([])
 const selectedRoleId = ref(1)
+
+// 监听角色选择变化
+watch(selectedRoleId, (newRoleId) => {
+  if (newRoleId) {
+    loadRolePermissions(newRoleId)
+  }
+})
 
 const permissionTree = ref([
   {
@@ -135,10 +142,33 @@ const loadRoles = async () => {
     rolesData.value = response.data
     if (rolesData.value.length > 0) {
       selectedRoleId.value = rolesData.value[0].id
+      // 加载该角色的权限
+      await loadRolePermissions(selectedRoleId.value)
     }
   } catch (error: any) {
     console.error('Error loading roles:', error)
     ElMessage.error('加载角色数据失败')
+  }
+}
+
+// 加载角色权限
+const loadRolePermissions = async (roleId: number) => {
+  try {
+    console.log('Loading permissions for role:', roleId)
+    const response = await axios.get(`/api/role-permissions/${roleId}`)
+    console.log('Permissions loaded:', response.data)
+    
+    // 更新权限树的选中状态
+    const permIds = response.data
+    permissionTree.value.forEach((node: any) => {
+      if (node.children) {
+        node.children.forEach((child: any) => {
+          child.checked = permIds.includes(child.id)
+        })
+      }
+    })
+  } catch (error: any) {
+    console.error('Error loading permissions:', error)
   }
 }
 
@@ -211,9 +241,34 @@ const handleCheckChange = (data: any, checked: boolean, indeterminate: boolean) 
   console.log('Permission check change:', data, checked, indeterminate)
 }
 
-const savePermissions = () => {
-  // 模拟保存权限
-  console.log('Save permissions for role:', selectedRoleId.value)
+const savePermissions = async () => {
+  try {
+    console.log('Save permissions for role:', selectedRoleId.value)
+    
+    // 获取选中的权限 ID
+    const checkedKeys = permissionTree.value.reduce((acc: number[], node: any) => {
+      if (node.children) {
+        node.children.forEach((child: any) => {
+          if (child.checked) {
+            acc.push(child.id)
+          }
+        })
+      }
+      return acc
+    }, [])
+    
+    console.log('Checked permission IDs:', checkedKeys)
+    
+    // 调用 API 保存权限
+    await axios.post(`/api/role-permissions/${selectedRoleId.value}`, {
+      permissionIds: checkedKeys
+    })
+    
+    ElMessage.success('权限保存成功')
+  } catch (error: any) {
+    console.error('Error saving permissions:', error)
+    ElMessage.error('保存权限失败')
+  }
 }
 </script>
 
