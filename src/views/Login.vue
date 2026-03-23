@@ -26,6 +26,12 @@
             <el-button type="text" @click="goToRegister">立即注册</el-button>
           </div>
         </el-form-item>
+        <el-form-item>
+          <div class="test-account">
+            <h4>测试账号：</h4>
+            <p>admin / admin123</p>
+          </div>
+        </el-form-item>
 
       </el-form>
     </el-card>
@@ -110,5 +116,25 @@ const goToRegister = () => {
   margin-top: 15px;
 }
 
+.test-account {
+  margin-top: 15px;
+  padding: 12px;
+  background-color: #f0f9eb;
+  border: 1px solid #e1f5fe;
+  border-radius: 4px;
+}
+
+.test-account h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #67c23a;
+  font-size: 14px;
+}
+
+.test-account p {
+  margin: 0;
+  font-size: 14px;
+  color: #606266;
+}
 
 </style>
