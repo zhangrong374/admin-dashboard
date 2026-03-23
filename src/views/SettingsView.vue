@@ -126,7 +126,7 @@ const loadSettings = () => {
 }
 
 const basicForm = reactive({
-  systemName: '中后台管理系统',
+  systemName: 'VueAdmin - 权限管理与数据分析平台',
   systemLogo: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
   systemDescription: '一个功能强大的中后台管理系统',
   copyright: '© 2024 管理系统 版权所有'
