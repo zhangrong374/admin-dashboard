@@ -55,7 +55,7 @@
             <el-tag>{{ scope.row.role }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180" />
+        <el-table-column prop="created_at" label="创建时间" width="180" />
         <el-table-column prop="status" label="状态" width="100">
           <template #default="scope">
             <el-switch
@@ -140,8 +140,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { userAPI } from '../utils/mockData'
 
 const filterForm = reactive({
   username: '',
@@ -165,34 +165,17 @@ const filteredUsers = ref<any[]>([])
 const loadUsers = async () => {
   try {
     console.log('=== Loading Users ===')
-    console.log('Sending GET request to /api/users')
-    
-    const response = await axios.get('/api/users')
-    
-    console.log('Response received')
-    console.log('Status:', response.status)
-    console.log('Data:', response.data)
-    
-    usersData.value = response.data
+    const users = await userAPI.getUsers()
+    usersData.value = users
     filteredUsers.value = [...usersData.value]
-    
+    pagination.total = users.length
     console.log('Users data updated:', usersData.value)
     console.log('Filtered users updated:', filteredUsers.value)
     console.log('=== Load Users Completed ===')
   } catch (error: any) {
     console.error('=== Load Users Error ===')
     console.error('Error:', error)
-    console.error('Message:', error.message)
-    console.error('Code:', error.code)
-    console.error('Response:', error.response)
-    
-    if (error.response) {
-      ElMessage.error(`加载失败: ${error.response.data.error || '服务器错误'}`)
-    } else if (error.request) {
-      ElMessage.error('加载失败: 无法连接到服务器')
-    } else {
-      ElMessage.error(`加载失败: ${error.message}`)
-    }
+    ElMessage.error(`加载失败: ${error.message || '服务器错误'}`)
   }
 }
 
@@ -265,28 +248,16 @@ const saveUser = async () => {
       return
     }
     
-    // 构建请求
-    const url = userForm.id ? `/api/users/${userForm.id}` : '/api/users'
-    const method = userForm.id ? 'put' : 'post'
-    
-    console.log(`Request: ${method} ${url}`)
-    console.log('Data:', userForm)
-    
-    // 发送请求
-    const response = await axios({
-      method,
-      url,
-      data: userForm,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    
-    console.log('Response received:', response)
-    console.log('Status:', response.status)
-    console.log('Data:', response.data)
-    
-    ElMessage.success(userForm.id ? '用户更新成功' : '用户添加成功')
+    if (userForm.id) {
+      // 编辑
+      const { id, ...updateData } = userForm
+      await userAPI.updateUser(Number(id), updateData)
+      ElMessage.success('用户更新成功')
+    } else {
+      // 添加
+      await userAPI.addUser(userForm)
+      ElMessage.success('用户添加成功')
+    }
     
     // 重新加载用户数据
     console.log('Reloading users...')
@@ -298,31 +269,14 @@ const saveUser = async () => {
   } catch (error: any) {
     console.error('=== Save User Error ===')
     console.error('Error:', error)
-    console.error('Message:', error.message)
-    console.error('Code:', error.code)
-    console.error('Response:', error.response)
-    
-    if (error.response) {
-      // 服务器返回错误
-      console.error('Response status:', error.response.status)
-      console.error('Response data:', error.response.data)
-      ElMessage.error(`保存失败: ${error.response.data.error || '服务器错误'}`)
-    } else if (error.request) {
-      // 请求已发送但没有收到响应
-      console.error('No response received')
-      ElMessage.error('保存失败: 无法连接到服务器')
-    } else {
-      // 请求配置出错
-      console.error('Request error:', error.message)
-      ElMessage.error(`保存失败: ${error.message}`)
-    }
+    ElMessage.error(`保存失败: ${error.message || '服务器错误'}`)
   }
 }
 
 const deleteUser = async (id: number) => {
   try {
     console.log(`Deleting user with id: ${id}`)
-    await axios.delete(`/api/users/${id}`)
+    await userAPI.deleteUser(id)
     ElMessage.success('用户删除成功')
     // 重新加载用户数据
     await loadUsers()
@@ -335,7 +289,7 @@ const deleteUser = async (id: number) => {
 const updateUserStatus = async (user: any) => {
   try {
     console.log(`Updating user status for id: ${user.id}`)
-    await axios.put(`/api/users/${user.id}`, user)
+    await userAPI.updateUser(user.id, user)
     ElMessage.success('状态更新成功')
     // 重新加载用户数据
     await loadUsers()

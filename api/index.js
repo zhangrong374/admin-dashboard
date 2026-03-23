@@ -137,13 +137,13 @@ app.get('/role-permissions/:roleId', (req, res) => {
 app.post('/role-permissions/:roleId', (req, res) => {
   const { roleId } = req.params;
   const { permissionIds } = req.body;
-
+  
   rolePermissions = rolePermissions.filter(rp => rp.role_id !== parseInt(roleId));
-
+  
   permissionIds.forEach(permId => {
     rolePermissions.push({ role_id: parseInt(roleId), permission_id: permId });
   });
-
+  
   res.json({ message: 'Permissions saved successfully' });
 });
 

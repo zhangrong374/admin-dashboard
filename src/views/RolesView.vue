@@ -14,7 +14,7 @@
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="name" label="角色名称" />
         <el-table-column prop="description" label="角色描述" />
-        <el-table-column prop="createdAt" label="创建时间" width="180" />
+        <el-table-column prop="created_at" label="创建时间" width="180" />
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="scope">
             <el-button type="primary" size="small" @click="editRole(scope.row)">
@@ -90,8 +90,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue'
-import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { roleAPI, permissionAPI } from '../utils/mockData'
 
 const rolesData = ref<any[]>([])
 const selectedRoleId = ref(1)
@@ -137,9 +137,9 @@ const permissionTree = ref([
 const loadRoles = async () => {
   try {
     console.log('Loading roles...')
-    const response = await axios.get('/api/roles')
-    console.log('Roles loaded:', response.data)
-    rolesData.value = response.data
+    const roles = await roleAPI.getRoles()
+    console.log('Roles loaded:', roles)
+    rolesData.value = roles
     if (rolesData.value.length > 0) {
       selectedRoleId.value = rolesData.value[0].id
       // 加载该角色的权限
@@ -155,11 +155,10 @@ const loadRoles = async () => {
 const loadRolePermissions = async (roleId: number) => {
   try {
     console.log('Loading permissions for role:', roleId)
-    const response = await axios.get(`/api/role-permissions/${roleId}`)
-    console.log('Permissions loaded:', response.data)
+    const permIds = await permissionAPI.getRolePermissions(roleId)
+    console.log('Permissions loaded:', permIds)
     
     // 更新权限树的选中状态
-    const permIds = response.data
     permissionTree.value.forEach((node: any) => {
       if (node.children) {
         node.children.forEach((child: any) => {
@@ -207,11 +206,12 @@ const saveRole = async () => {
     console.log('Saving role:', roleForm)
     if (roleForm.id) {
       // 编辑
-      await axios.put(`/api/roles/${roleForm.id}`, roleForm)
+      const { id, ...updateData } = roleForm
+      await roleAPI.updateRole(Number(id), updateData)
       ElMessage.success('角色更新成功')
     } else {
       // 添加
-      await axios.post('/api/roles', roleForm)
+      await roleAPI.addRole(roleForm)
       ElMessage.success('角色添加成功')
     }
     // 重新加载角色数据
@@ -226,7 +226,7 @@ const saveRole = async () => {
 const deleteRole = async (id: number) => {
   try {
     console.log(`Deleting role with id: ${id}`)
-    await axios.delete(`/api/roles/${id}`)
+    await roleAPI.deleteRole(id)
     ElMessage.success('角色删除成功')
     // 重新加载角色数据
     await loadRoles()
@@ -260,9 +260,7 @@ const savePermissions = async () => {
     console.log('Checked permission IDs:', checkedKeys)
     
     // 调用 API 保存权限
-    await axios.post(`/api/role-permissions/${selectedRoleId.value}`, {
-      permissionIds: checkedKeys
-    })
+    await permissionAPI.saveRolePermissions(selectedRoleId.value, checkedKeys)
     
     ElMessage.success('权限保存成功')
   } catch (error: any) {
