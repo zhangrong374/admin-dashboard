@@ -90,7 +90,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { roleAPI, permissionAPI } from '../utils/mockData'
 
 const rolesData = ref<any[]>([])
@@ -227,13 +227,29 @@ const saveRole = async () => {
 const deleteRole = async (id: number) => {
   try {
     console.log(`Deleting role with id: ${id}`)
-    await roleAPI.deleteRole(id)
-    ElMessage.success('角色删除成功')
-    // 重新加载角色数据
-    await loadRoles()
+    
+    // 显示确认对话框
+    const confirmResult = await ElMessageBox.confirm(
+      '确定要删除该角色吗？删除后将无法恢复。',
+      '删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    if (confirmResult) {
+      await roleAPI.deleteRole(id)
+      ElMessage.success('角色删除成功')
+      // 重新加载角色数据
+      await loadRoles()
+    }
   } catch (error: any) {
-    console.error('Error deleting role:', error)
-    ElMessage.error('删除角色失败')
+    if (error !== 'cancel') {
+      console.error('Error deleting role:', error)
+      ElMessage.error('删除角色失败')
+    }
   }
 }
 
