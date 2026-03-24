@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>测试前端功能</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus@2.8.4/dist/index.css">
+  <script src="https://unpkg.com/element-plus@2.8.4/dist/index.full.js"></script>
+</head>
+<body>
+  <div id="app">
+    <h1>测试前端功能</h1>
+    <button @click="testUserManagement">测试用户管理</button>
+    <button @click="testRoleManagement">测试角色管理</button>
+    <div id="result"></div>
+  </div>
+
+  <script type="module">
+    import { userAPI, roleAPI } from './src/utils/mockData.js';
+
+    const { createApp } = Vue;
+
+    createApp({
+      methods: {
+        async testUserManagement() {
+          const resultDiv = document.getElementById('result');
+          resultDiv.innerHTML = '<h2>测试用户管理</h2>';
+
+          try {
+            // 获取初始用户列表
+            resultDiv.innerHTML += '<p>1. 获取初始用户列表...</p>';
+            const initialUsers = await userAPI.getUsers();
+            resultDiv.innerHTML += `<p>初始用户数量: ${initialUsers.length}</p>`;
+            
+            // 测试添加用户
+            resultDiv.innerHTML += '<p>2. 测试添加用户...</p>';
+            const newUser = await userAPI.addUser({
+              username: 'testuser',
+              email: 'test@example.com',
+              password: 'test123',
+              role: 'user',
+              status: 'active'
+            });
+            resultDiv.innerHTML += `<p>添加的用户 ID: ${newUser.id}</p>`;
+            
+            // 获取添加后的用户列表
+            const usersAfterAdd = await userAPI.getUsers();
+            resultDiv.innerHTML += `<p>添加后的用户数量: ${usersAfterAdd.length}</p>`;
+            
+            // 测试编辑用户
+            resultDiv.innerHTML += '<p>3. 测试编辑用户...</p>';
+            const userId = newUser.id;
+            const updatedUser = await userAPI.updateUser(userId, {
+              username: 'updateduser',
+              email: 'updated@example.com'
+            });
+            resultDiv.innerHTML += `<p>更新后的用户名称: ${updatedUser.username}</p>`;
+            
+            // 获取编辑后的用户列表
+            const usersAfterUpdate = await userAPI.getUsers();
+            const editedUser = usersAfterUpdate.find(u => u.id === userId);
+            resultDiv.innerHTML += `<p>编辑后的用户信息: ${JSON.stringify(editedUser)}</p>`;
+            
+            // 测试删除用户
+            resultDiv.innerHTML += '<p>4. 测试删除用户...</p>';
+            await userAPI.deleteUser(userId);
+            
+            // 获取删除后的用户列表
+            const usersAfterDelete = await userAPI.getUsers();
+            resultDiv.innerHTML += `<p>删除后的用户数量: ${usersAfterDelete.length}</p>`;
+            const deletedUser = usersAfterDelete.find(u => u.id === userId);
+            resultDiv.innerHTML += `<p>删除的用户是否存在: ${deletedUser ? '是' : '否'}</p>`;
+            
+            resultDiv.innerHTML += '<p style="color: green;">用户管理功能测试完成</p>';
+          } catch (error) {
+            resultDiv.innerHTML += `<p style="color: red;">测试失败: ${error.message}</p>`;
+          }
+        },
+        async testRoleManagement() {
+          const resultDiv = document.getElementById('result');
+          resultDiv.innerHTML = '<h2>测试角色管理</h2>';
+
+          try {
+            // 获取初始角色列表
+            resultDiv.innerHTML += '<p>1. 获取初始角色列表...</p>';
+            const initialRoles = await roleAPI.getRoles();
+            resultDiv.innerHTML += `<p>初始角色数量: ${initialRoles.length}</p>`;
+            
+            // 测试添加角色
+            resultDiv.innerHTML += '<p>2. 测试添加角色...</p>';
+            const newRole = await roleAPI.addRole({
+              name: '测试角色',
+              description: '测试角色描述'
+            });
+            resultDiv.innerHTML += `<p>添加的角色 ID: ${newRole.id}</p>`;
+            
+            // 获取添加后的角色列表
+            const rolesAfterAdd = await roleAPI.getRoles();
+            resultDiv.innerHTML += `<p>添加后的角色数量: ${rolesAfterAdd.length}</p>`;
+            
+            // 测试编辑角色
+            resultDiv.innerHTML += '<p>3. 测试编辑角色...</p>';
+            const roleId = newRole.id;
+            const updatedRole = await roleAPI.updateRole(roleId, {
+              name: '更新的测试角色',
+              description: '更新的测试角色描述'
+            });
+            resultDiv.innerHTML += `<p>更新后的角色名称: ${updatedRole.name}</p>`;
+            
+            // 获取编辑后的角色列表
+            const rolesAfterUpdate = await roleAPI.getRoles();
+            const editedRole = rolesAfterUpdate.find(r => r.id === roleId);
+            resultDiv.innerHTML += `<p>编辑后的角色信息: ${JSON.stringify(editedRole)}</p>`;
+            
+            // 测试删除角色
+            resultDiv.innerHTML += '<p>4. 测试删除角色...</p>';
+            await roleAPI.deleteRole(roleId);
+            
+            // 获取删除后的角色列表
+            const rolesAfterDelete = await roleAPI.getRoles();
+            resultDiv.innerHTML += `<p>删除后的角色数量: ${rolesAfterDelete.length}</p>`;
+            const deletedRole = rolesAfterDelete.find(r => r.id === roleId);
+            resultDiv.innerHTML += `<p>删除的角色是否存在: ${deletedRole ? '是' : '否'}</p>`;
+            
+            resultDiv.innerHTML += '<p style="color: green;">角色管理功能测试完成</p>';
+          } catch (error) {
+            resultDiv.innerHTML += `<p style="color: red;">测试失败: ${error.message}</p>`;
+          }
+        }
+      }
+    }).use(ElementPlus).mount('#app');
+  </script>
+</body>
+</html>

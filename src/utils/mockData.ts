@@ -125,7 +125,6 @@ let rolePermissions: RolePermission[] = [
 
 // 计数器
 let userIdCounter = 5;
-let roleIdCounter = 4;
 
 // 模拟 API 延迟
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -141,8 +140,10 @@ export const userAPI = {
   // 添加用户
   addUser: async (user: Omit<User, 'id' | 'created_at'>): Promise<User> => {
     await delay(300);
+    // 计算新 ID，确保递增
+    const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
     const newUser: User = {
-      id: userIdCounter++,
+      id: newId,
       ...user,
       created_at: new Date().toISOString()
     };
@@ -155,7 +156,7 @@ export const userAPI = {
     await delay(300);
     const index = users.findIndex(u => u.id === id);
     if (index !== -1) {
-      users[index] = { ...users[index], ...user };
+      users.splice(index, 1, { ...users[index], ...user });
       return users[index];
     }
     throw new Error('User not found');
@@ -219,8 +220,10 @@ export const roleAPI = {
   // 添加角色
   addRole: async (role: Omit<Role, 'id' | 'created_at'>): Promise<Role> => {
     await delay(300);
+    // 计算新 ID，确保递增
+    const newId = roles.length > 0 ? Math.max(...roles.map(r => r.id)) + 1 : 1;
     const newRole: Role = {
-      id: roleIdCounter++,
+      id: newId,
       ...role,
       created_at: new Date().toISOString()
     };
@@ -233,7 +236,7 @@ export const roleAPI = {
     await delay(300);
     const index = roles.findIndex(r => r.id === id);
     if (index !== -1) {
-      roles[index] = { ...roles[index], ...role };
+      roles.splice(index, 1, { ...roles[index], ...role });
       return roles[index];
     }
     throw new Error('Role not found');

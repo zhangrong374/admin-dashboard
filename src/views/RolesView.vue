@@ -179,7 +179,7 @@ onMounted(() => {
 const dialogVisible = ref(false)
 const dialogTitle = ref('添加角色')
 const roleForm = reactive({
-  id: '',
+  id: 0,
   name: '',
   description: ''
 })
@@ -188,7 +188,7 @@ const roleFormRef = ref()
 const openAddRoleDialog = () => {
   dialogTitle.value = '添加角色'
   Object.assign(roleForm, {
-    id: '',
+    id: 0,
     name: '',
     description: ''
   })
@@ -204,14 +204,15 @@ const editRole = (role: any) => {
 const saveRole = async () => {
   try {
     console.log('Saving role:', roleForm)
-    if (roleForm.id) {
+    if (roleForm.id > 0) {
       // 编辑
       const { id, ...updateData } = roleForm
-      await roleAPI.updateRole(Number(id), updateData)
+      await roleAPI.updateRole(id, updateData)
       ElMessage.success('角色更新成功')
     } else {
       // 添加
-      await roleAPI.addRole(roleForm)
+      const { id, ...addData } = roleForm
+      await roleAPI.addRole(addData)
       ElMessage.success('角色添加成功')
     }
     // 重新加载角色数据

@@ -196,7 +196,7 @@ const pagination = reactive({
 const dialogVisible = ref(false)
 const dialogTitle = ref('添加用户')
 const userForm = reactive({
-  id: '',
+  id: 0,
   username: '',
   email: '',
   password: '',
@@ -208,7 +208,7 @@ const userFormRef = ref()
 const openAddUserDialog = () => {
   dialogTitle.value = '添加用户'
   Object.assign(userForm, {
-    id: '',
+    id: 0,
     username: '',
     email: '',
     password: '',
@@ -248,14 +248,15 @@ const saveUser = async () => {
       return
     }
     
-    if (userForm.id) {
+    if (userForm.id > 0) {
       // 编辑
       const { id, ...updateData } = userForm
-      await userAPI.updateUser(Number(id), updateData)
+      await userAPI.updateUser(id, updateData)
       ElMessage.success('用户更新成功')
     } else {
       // 添加
-      await userAPI.addUser(userForm)
+      const { id, ...addData } = userForm
+      await userAPI.addUser(addData)
       ElMessage.success('用户添加成功')
     }
     
